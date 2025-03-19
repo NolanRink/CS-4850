@@ -52,7 +52,10 @@ try:
         # - Logged in: only "send" and "logout" are allowed.
         if not logged_in:
             if cmd not in ("login", "newuser"):
-                print("Denied. Please login first.")
+                if cmd in ("send", "logout"):
+                    print("Denied. Please login first.")
+                else:
+                    print("Error: Unknown command")
                 continue
         else:
             if cmd not in ("send", "logout"):
@@ -70,6 +73,16 @@ try:
                 continue
             if len(pwd) < 4 or len(pwd) > 8:
                 print("Password must be 4-8 characters long")
+                continue
+
+        if cmd == "send":
+            # Extract the message (everything after "send")
+            message = command_line[4:].strip()  # Remove "send" and the following space
+            if message == "":
+                print("Error: Message is empty")
+                continue
+            if len(message) > 256:
+                print("Error: Message must be between 1 and 256 characters long")
                 continue
 
         # Send the command to the server
