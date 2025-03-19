@@ -28,9 +28,9 @@ print("\nMy chat room client. Version One.\n")
 # Interactive command loop
 try:
     while True:
-        # Read a line of user input
+        # Read a line of user input with a prompt that prints as expected
         try:
-            user_input = input("> ")  # prompt for clarity
+            user_input = input(">")
         except EOFError:
             # Handle Ctrl+D / end-of-file as a signal to quit
             break
@@ -44,23 +44,23 @@ try:
         try:
             client_sock.sendall(command.encode('utf-8'))
         except Exception as e:
-            print("Connection to server lost.")
+            print(">Connection to server lost.")
             break
 
         # Receive the server’s response
         try:
             data = client_sock.recv(1024)
         except Exception as e:
-            print("Connection to server lost.")
+            print(">Connection to server lost.")
             break
         if not data:
             # No data means the server closed the connection
-            print("Server closed the connection.")
+            print(">Server closed the connection.")
             break
 
-        # Display the server's response
+        # Display the server's response (prefix with "> " for expected formatting)
         response = data.decode('utf-8', errors='ignore').strip()
-        print(response)
+        print("> " + response)
 
         # If the command was "logout", exit the loop after receiving the response
         if command.split()[0].lower() == "logout":

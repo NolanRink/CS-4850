@@ -22,7 +22,6 @@ try:
                 username = parts[0].strip()
                 password = parts[1].strip()
                 users[username] = password
-
 except FileNotFoundError:
     users = {}
 
@@ -36,12 +35,12 @@ except Exception as e:
     sys.exit(1)
 server_sock.listen(1)  # listen for one connection at a time
 
-print("\nMy chat room sever. Version One.\n")
+print("\nMy chat room server. Version One.\n")
 
 # Accept and handle clients one by one
 while True:
     conn, addr = server_sock.accept()
-    print(f"Client connected from {addr}")
+    # (Connection details are no longer printed.)
     logged_in_user = None  # no user logged in at start of connection
     try:
         while True:
@@ -53,7 +52,8 @@ while True:
             command_line = data.decode('utf-8', errors='ignore').strip()
             if not command_line:
                 continue  # ignore empty lines
-            print(f"Received from client: {command_line}")  # (for server debug/logging)
+
+            # (Removed debug print for received commands)
 
             # Split the input into command and argument(s)
             parts = command_line.split(' ', 1)
@@ -71,7 +71,9 @@ while True:
                     _, user_id, pwd = args
                     if user_id in users and users[user_id] == pwd:
                         logged_in_user = user_id
-                        response = f"login confirmed"
+                        response = "login confirmed"
+                        # Print server log for successful login (matches expected server output)
+                        print(f"{logged_in_user} login.")
                     else:
                         response = "Denied. User name or password incorrect."
 
@@ -97,9 +99,10 @@ while True:
                         try:
                             with open(USERFILE, 'a') as f:
                                 f.write(f"\n({new_user}, {new_pwd})")
-                            response = "New user account created. Please login."
+                            response = "New user account created."
+                            # Print server log for new user creation
+                            print("New user account created.")
                         except Exception as e:
-                            # If file write fails, remove user from dictionary
                             users.pop(new_user, None)
                             response = "Error: Could not save new user."
 
@@ -114,6 +117,8 @@ while True:
                         message = parts[1]
                         # Echo the message with the user's ID
                         response = f"{logged_in_user}: {message}"
+                        # Print server log for sent message
+                        print(response)
 
             elif command == "logout":
                 # Expected format: logout
@@ -121,8 +126,10 @@ while True:
                     response = "Error: You are not logged in"
                 else:
                     response = f"{logged_in_user} left."
-                    conn.sendall(response.encode('utf-8'))  # send goodbye message
-                    break  # exit the loop to close connection
+                    # Print server log for logout (matches expected server output)
+                    print(f"{logged_in_user} logout.")
+                    conn.sendall(response.encode('utf-8'))
+                    break
 
             else:
                 # Unknown command
@@ -137,4 +144,4 @@ while True:
                     break
     finally:
         conn.close()
-        print(f"Client from {addr} disconnected")
+        # (Removed disconnection message.)
