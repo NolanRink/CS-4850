@@ -144,4 +144,3 @@ while True:
                     break
     finally:
         conn.close()
-        # (Removed disconnection message.)

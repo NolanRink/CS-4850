@@ -25,6 +25,10 @@ except Exception as e:
 
 print("\nMy chat room client. Version One.\n")
 
+# Track login state on the client
+logged_in = False
+current_user = None
+
 # Interactive command loop
 try:
     while True:
@@ -36,13 +40,41 @@ try:
             break
         if user_input is None:
             continue
-        command = user_input.strip()
-        if command == "":
+        command_line = user_input.strip()
+        if command_line == "":
             continue  # ignore empty input lines
+
+        tokens = command_line.split()
+        cmd = tokens[0].lower()
+
+        # Enforce allowed commands based on login state:
+        # - Logged out: only "login" and "newuser" are allowed.
+        # - Logged in: only "send" and "logout" are allowed.
+        if not logged_in:
+            if cmd not in ("login", "newuser"):
+                print("Denied. Please login first.")
+                continue
+        else:
+            if cmd not in ("send", "logout"):
+                print("Denied. Please login first.")
+                continue
+
+        # For login and newuser, enforce argument count and length restrictions.
+        if cmd in ("login", "newuser"):
+            if len(tokens) != 3:
+                print(f"Usage: {cmd} <UserID> <Password>")
+                continue
+            _, user_id, pwd = tokens
+            if len(user_id) < 3 or len(user_id) > 32:
+                print("UserID must be 3-32 characters long")
+                continue
+            if len(pwd) < 4 or len(pwd) > 8:
+                print("Password must be 4-8 characters long")
+                continue
 
         # Send the command to the server
         try:
-            client_sock.sendall(command.encode('utf-8'))
+            client_sock.sendall(command_line.encode('utf-8'))
         except Exception as e:
             print(">Connection to server lost.")
             break
@@ -62,9 +94,21 @@ try:
         response = data.decode('utf-8', errors='ignore').strip()
         print("> " + response)
 
-        # If the command was "logout", exit the loop after receiving the response
-        if command.split()[0].lower() == "logout":
-            break
+        # Update client-side state based on the command and response
+        if cmd == "login":
+            if response.lower() == "login confirmed":
+                logged_in = True
+                current_user = tokens[1]
+            else:
+                # Ensure state remains logged out if login failed.
+                logged_in = False
+        elif cmd == "logout":
+            logged_in = False
+            current_user = None
+            break  # Exit the loop after logout
+
+except KeyboardInterrupt:
+    pass
 finally:
     # Clean up the socket
     client_sock.close()
