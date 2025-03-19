@@ -14,12 +14,15 @@ try:
             line = line.strip()
             if not line:
                 continue
-            # Each line in users.txt is expected as "UserID Password"
-            parts = line.split()
+            # Expecting format: (UserID, Password)
+            if line.startswith("(") and line.endswith(")"):
+                line = line[1:-1]  # Remove the surrounding parentheses
+            parts = line.split(',')
             if len(parts) >= 2:
-                username = parts[0]
-                password = parts[1]
+                username = parts[0].strip()
+                password = parts[1].strip()
                 users[username] = password
+
 except FileNotFoundError:
     users = {}
 
@@ -33,7 +36,8 @@ except Exception as e:
     sys.exit(1)
 server_sock.listen(1)  # listen for one connection at a time
 
-print(f"Server listening on port {PORT}...")
+# print(f"Server listening on port {PORT}...")
+print("\nMy chat room sever. Version One.\n")
 
 # Accept and handle clients one by one
 while True:
@@ -68,9 +72,9 @@ while True:
                     _, user_id, pwd = args
                     if user_id in users and users[user_id] == pwd:
                         logged_in_user = user_id
-                        response = f"Welcome, {user_id}!"
+                        response = f"login confirmed"
                     else:
-                        response = "Invalid UserID or Password"
+                        response = "Denied. User name or password incorrect."
 
             elif command == "newuser":
                 # Expected format: newuser <UserID> <Password>
@@ -87,13 +91,13 @@ while True:
                     elif len(new_pwd) < 4 or len(new_pwd) > 8:
                         response = "Password must be 4-8 characters long"
                     elif new_user in users:
-                        response = "Error: UserID already exists"
+                        response = "Denied. User account already exists."
                     else:
                         # Create the new user account
                         users[new_user] = new_pwd
                         try:
                             with open(USERFILE, 'a') as f:
-                                f.write(f"{new_user} {new_pwd}\n")
+                                f.write(f"({new_user}, {new_pwd})\n")
                             response = "New user account created. Please login."
                         except Exception as e:
                             # If file write fails, remove user from dictionary
@@ -103,7 +107,7 @@ while True:
             elif command == "send":
                 # Expected format: send <message>
                 if not logged_in_user:
-                    response = "Error: You must login first"
+                    response = "Denied. Please login first."
                 else:
                     if len(parts) < 2 or parts[1] == "":
                         response = "Error: Message is empty"
@@ -117,7 +121,7 @@ while True:
                 if not logged_in_user:
                     response = "Error: You are not logged in"
                 else:
-                    response = f"Goodbye, {logged_in_user}!"
+                    response = f"{logged_in_user} left."
                     conn.sendall(response.encode('utf-8'))  # send goodbye message
                     break  # exit the loop to close connection
 

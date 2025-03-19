@@ -23,7 +23,8 @@ except Exception as e:
     print(f"Could not connect to server {SERVER_HOST}:{SERVER_PORT} -> {e}")
     sys.exit(1)
 
-print(f"Connected to chat server at {SERVER_HOST}:{SERVER_PORT}")
+# print(f"Connected to chat server at {SERVER_HOST}:{SERVER_PORT}")
+print("\nMy chat room client. Version One.\n")
 
 # Interactive command loop
 try:
@@ -68,4 +69,3 @@ try:
 finally:
     # Clean up the socket
     client_sock.close()
-    print("Disconnected from chat server.")
