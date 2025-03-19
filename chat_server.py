@@ -36,7 +36,6 @@ except Exception as e:
     sys.exit(1)
 server_sock.listen(1)  # listen for one connection at a time
 
-# print(f"Server listening on port {PORT}...")
 print("\nMy chat room sever. Version One.\n")
 
 # Accept and handle clients one by one
