@@ -96,7 +96,7 @@ while True:
                         users[new_user] = new_pwd
                         try:
                             with open(USERFILE, 'a') as f:
-                                f.write(f"({new_user}, {new_pwd})\n")
+                                f.write(f"\n({new_user}, {new_pwd})")
                             response = "New user account created. Please login."
                         except Exception as e:
                             # If file write fails, remove user from dictionary
