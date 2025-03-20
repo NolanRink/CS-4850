@@ -31,30 +31,66 @@ except Exception as e:
 
 print("\nMy chat room client. Version Two.\n")
 
+# def listen_for_messages(sock):
+#     global running, logged_in, current_user
+#     while running:
+#         try:
+#             data = sock.recv(1024)
+#             if not data:
+#                 print("> Server closed the connection.")
+#                 running = False
+#                 break
+#             message = data.decode('utf-8', errors='ignore').strip()
+#             # Print received messages with the prompt prefix
+#             # print("\n> " + message)
+#             print(" " + message)
+#             # If the server confirms login, update state
+#             if message.lower() == "login confirmed":
+#                 logged_in = True
+#             # If the received message indicates that our user has left, update state
+#             if current_user and message.lower() == f"{current_user.lower()} left.":
+#                 logged_in = False
+#                 current_user = None
+#         except Exception as e:
+#             print("> Connection to server lost.")
+#             running = False
+#             break
+
+import sys
+
+def clear_line():
+    # Overwrite the current line with spaces and return the cursor to the beginning.
+    sys.stdout.write("\r" + " " * 80 + "\r")
+    sys.stdout.flush()
+
 def listen_for_messages(sock):
     global running, logged_in, current_user
     while running:
         try:
             data = sock.recv(1024)
             if not data:
-                print("> Server closed the connection.")
+                clear_line()
+                sys.stdout.write("> Server closed the connection.\n")
+                sys.stdout.flush()
                 running = False
                 break
             message = data.decode('utf-8', errors='ignore').strip()
-            # Print received messages with the prompt prefix
-            # print("\n> " + message)
-            print(message)
-            # If the server confirms login, update state
+            clear_line()
+            sys.stdout.write("> " + message + "\n")
+            sys.stdout.write("> ")
+            sys.stdout.flush()
             if message.lower() == "login confirmed":
                 logged_in = True
-            # If the received message indicates that our user has left, update state
             if current_user and message.lower() == f"{current_user.lower()} left.":
                 logged_in = False
                 current_user = None
         except Exception as e:
-            print("> Connection to server lost.")
+            clear_line()
+            sys.stdout.write("> Connection to server lost.\n")
+            sys.stdout.flush()
             running = False
             break
+
 
 # Start a listener thread for asynchronous messages
 listener_thread = threading.Thread(target=listen_for_messages, args=(client_sock,), daemon=True)
