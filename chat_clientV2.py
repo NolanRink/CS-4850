@@ -31,33 +31,6 @@ except Exception as e:
 
 print("\nMy chat room client. Version Two.\n")
 
-# def listen_for_messages(sock):
-#     global running, logged_in, current_user
-#     while running:
-#         try:
-#             data = sock.recv(1024)
-#             if not data:
-#                 print("> Server closed the connection.")
-#                 running = False
-#                 break
-#             message = data.decode('utf-8', errors='ignore').strip()
-#             # Print received messages with the prompt prefix
-#             # print("\n> " + message)
-#             print(" " + message)
-#             # If the server confirms login, update state
-#             if message.lower() == "login confirmed":
-#                 logged_in = True
-#             # If the received message indicates that our user has left, update state
-#             if current_user and message.lower() == f"{current_user.lower()} left.":
-#                 logged_in = False
-#                 current_user = None
-#         except Exception as e:
-#             print("> Connection to server lost.")
-#             running = False
-#             break
-
-import sys
-
 def clear_line():
     # Overwrite the current line with spaces and return the cursor to the beginning.
     sys.stdout.write("\r" + " " * 80 + "\r")
@@ -70,14 +43,13 @@ def listen_for_messages(sock):
             data = sock.recv(1024)
             if not data:
                 clear_line()
-                sys.stdout.write("> Server closed the connection.\n")
+                sys.stdout.write("Server closed the connection.\n")
                 sys.stdout.flush()
                 running = False
                 break
             message = data.decode('utf-8', errors='ignore').strip()
             clear_line()
-            sys.stdout.write("> " + message + "\n")
-            sys.stdout.write("> ")
+            sys.stdout.write(message + "\n")
             sys.stdout.flush()
             if message.lower() == "login confirmed":
                 logged_in = True
@@ -86,11 +58,10 @@ def listen_for_messages(sock):
                 current_user = None
         except Exception as e:
             clear_line()
-            sys.stdout.write("> Connection to server lost.\n")
+            sys.stdout.write("Connection to server lost.\n")
             sys.stdout.flush()
             running = False
             break
-
 
 # Start a listener thread for asynchronous messages
 listener_thread = threading.Thread(target=listen_for_messages, args=(client_sock,), daemon=True)
@@ -99,7 +70,7 @@ listener_thread.start()
 try:
     while running:
         try:
-            user_input = input(">")
+            user_input = input("")  # Removed prompt
         except EOFError:
             break
         if user_input is None:
@@ -116,36 +87,36 @@ try:
         if not logged_in:
             if cmd not in ("login", "newuser"):
                 if cmd in ("send", "logout", "who"):
-                    print("> Denied. Please login first.")
+                    print("Denied. Please login first.")
                 else:
-                    print("> Error: Unknown command")
+                    print("Error: Unknown command")
                 continue
         else:
             if cmd not in ("send", "logout", "who"):
-                print("> Denied. Please login first.")
+                print("Denied. Please login first.")
                 continue
 
         # Enforce argument count and length restrictions for login and newuser
         if cmd in ("login", "newuser"):
             if len(tokens) != 3:
-                print(f"> Usage: {cmd} <UserID> <Password>")
+                print(f"Usage: {cmd} <UserID> <Password>")
                 continue
             _, user_id, pwd = tokens
             if len(user_id) < 3 or len(user_id) > 32:
-                print("> UserID must be 3-32 characters long")
+                print("UserID must be 3-32 characters long")
                 continue
             if len(pwd) < 4 or len(pwd) > 8:
-                print("> Password must be 4-8 characters long")
+                print("Password must be 4-8 characters long")
                 continue
 
         # For "send", enforce nonempty message and length restrictions.
         if cmd == "send":
             message_content = command_line[4:].strip()
             if message_content == "":
-                print("> Denied. Message is empty")
+                print("Denied. Message is empty")
                 continue
             if len(message_content) < 1 or len(message_content) > 256:
-                print("> Denied. Message must be between 1 and 256 characters long")
+                print("Denied. Message must be between 1 and 256 characters long")
                 continue
 
         if cmd == "login":
@@ -154,7 +125,7 @@ try:
         try:
             client_sock.sendall(command_line.encode('utf-8'))
         except Exception as e:
-            print("> Connection to server lost.")
+            print("Connection to server lost.")
             running = False
             break
 
