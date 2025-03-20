@@ -37,12 +37,13 @@ def listen_for_messages(sock):
         try:
             data = sock.recv(1024)
             if not data:
-                print(">Server closed the connection.")
+                print("> Server closed the connection.")
                 running = False
                 break
             message = data.decode('utf-8', errors='ignore').strip()
             # Print received messages with the prompt prefix
-            print("\n> " + message)
+            # print("\n> " + message)
+            print(message)
             # If the server confirms login, update state
             if message.lower() == "login confirmed":
                 logged_in = True
@@ -51,7 +52,7 @@ def listen_for_messages(sock):
                 logged_in = False
                 current_user = None
         except Exception as e:
-            print(">Connection to server lost.")
+            print("> Connection to server lost.")
             running = False
             break
 
@@ -74,57 +75,57 @@ try:
         tokens = command_line.split()
         cmd = tokens[0].lower()
 
-        # Enforce allowed commands:
         # - When logged out: only "login" and "newuser" are allowed.
         # - When logged in: only "send", "logout", and "who" are allowed.
         if not logged_in:
             if cmd not in ("login", "newuser"):
                 if cmd in ("send", "logout", "who"):
-                    print("Denied. Please login first.")
+                    print("> Denied. Please login first.")
                 else:
-                    print("Error: Unknown command")
+                    print("> Error: Unknown command")
                 continue
         else:
             if cmd not in ("send", "logout", "who"):
-                print("Error: Unknown command.")
+                print("> Denied. Please login first.")
                 continue
 
         # Enforce argument count and length restrictions for login and newuser
         if cmd in ("login", "newuser"):
             if len(tokens) != 3:
-                print(f"Usage: {cmd} <UserID> <Password>")
+                print(f"> Usage: {cmd} <UserID> <Password>")
                 continue
             _, user_id, pwd = tokens
             if len(user_id) < 3 or len(user_id) > 32:
-                print("UserID must be 3-32 characters long")
+                print("> UserID must be 3-32 characters long")
                 continue
             if len(pwd) < 4 or len(pwd) > 8:
-                print("Password must be 4-8 characters long")
+                print("> Password must be 4-8 characters long")
                 continue
 
         # For "send", enforce nonempty message and length restrictions.
         if cmd == "send":
             message_content = command_line[4:].strip()
             if message_content == "":
-                print("Error: Message is empty")
+                print("> Denied. Message is empty")
                 continue
             if len(message_content) < 1 or len(message_content) > 256:
-                print("Error: Message must be between 1 and 256 characters long")
+                print("> Denied. Message must be between 1 and 256 characters long")
                 continue
 
-        # For login, store the current user (login confirmation comes from the server)
         if cmd == "login":
             current_user = tokens[1]
 
         try:
             client_sock.sendall(command_line.encode('utf-8'))
         except Exception as e:
-            print(">Connection to server lost.")
+            print("> Connection to server lost.")
             running = False
             break
 
         # If logout was issued, stop the loop.
         if cmd == "logout":
+            logged_in = False
+            current_user = None
             running = False
             break
 

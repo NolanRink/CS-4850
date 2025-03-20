@@ -6,7 +6,7 @@ import os
 
 MAXCLIENTS = 3
 
-HOST = ''
+HOST = '127.0.0.1'
 PORT = 19953
 USERFILE = 'users.txt'
 
