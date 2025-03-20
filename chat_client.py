@@ -1,19 +1,10 @@
+# Using Python version 3.12.0
 import socket
 import sys
 
 # Default server address
-SERVER_HOST = 'localhost'
+SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 19953
-
-# Allow host and port override via command-line arguments (optional)
-if len(sys.argv) >= 2:
-    SERVER_HOST = sys.argv[1]
-if len(sys.argv) >= 3:
-    try:
-        SERVER_PORT = int(sys.argv[2])
-    except ValueError:
-        print("Invalid port number. Using default 19953.")
-        SERVER_PORT = 19953
 
 # Connect to the server
 client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,7 +16,7 @@ except Exception as e:
 
 print("\nMy chat room client. Version One.\n")
 
-# Track login state on the client
+# Track client login status and current user
 logged_in = False
 current_user = None
 
@@ -34,7 +25,7 @@ try:
     while True:
         # Read a line of user input with a prompt that prints as expected
         try:
-            user_input = input(">")
+            user_input = input("> ")
         except EOFError:
             # Handle Ctrl+D / end-of-file as a signal to quit
             break
@@ -47,63 +38,60 @@ try:
         tokens = command_line.split()
         cmd = tokens[0].lower()
 
-        # Enforce allowed commands based on login state:
-        # - Logged out: only "login" and "newuser" are allowed.
-        # - Logged in: only "send" and "logout" are allowed.
+        # Logged out: only "login" and "newuser" are allowed.
+        # Logged in: only "send" and "logout" are allowed.
         if not logged_in:
             if cmd not in ("login", "newuser"):
                 if cmd in ("send", "logout"):
-                    print("Denied. Please login first.")
+                    print("> Denied. Please login first.")
                 else:
-                    print("Error: Unknown command")
+                    print("> Error: Unknown command")
                 continue
         else:
             if cmd not in ("send", "logout"):
-                print("Denied. Please login first.")
+                print("> Denied. Please login first.")
                 continue
 
         # For login and newuser, enforce argument count and length restrictions.
         if cmd in ("login", "newuser"):
             if len(tokens) != 3:
-                print(f"Usage: {cmd} <UserID> <Password>")
+                print(f"> Usage: {cmd} <UserID> <Password>")
                 continue
             _, user_id, pwd = tokens
             if len(user_id) < 3 or len(user_id) > 32:
-                print("UserID must be 3-32 characters long")
+                print("> UserID must be 3-32 characters long")
                 continue
             if len(pwd) < 4 or len(pwd) > 8:
-                print("Password must be 4-8 characters long")
+                print("> Password must be 4-8 characters long")
                 continue
 
         if cmd == "send":
-            # Extract the message (everything after "send")
             message = command_line[4:].strip()  # Remove "send" and the following space
             if message == "":
-                print("Error: Message is empty")
+                print("> Denied. Message is empty")
                 continue
-            if len(message) > 256:
-                print("Error: Message must be between 1 and 256 characters long")
+            if len(message) > 256 or len(message) < 1:
+                print("> Denied. Message must be between 1 and 256 characters long")
                 continue
 
         # Send the command to the server
         try:
             client_sock.sendall(command_line.encode('utf-8'))
         except Exception as e:
-            print(">Connection to server lost.")
+            print("> Connection to server lost.")
             break
 
         # Receive the server’s response
         try:
             data = client_sock.recv(1024)
         except Exception as e:
-            print(">Connection to server lost.")
+            print("> Connection to server lost.")
             break
         if not data:
             # No data means the server closed the connection
-            print(">Server closed the connection.")
+            print("> Server closed the connection.")
             break
 
-        # Display the server's response (prefix with "> " for expected formatting)
         response = data.decode('utf-8', errors='ignore').strip()
         print("> " + response)
 
@@ -123,5 +111,4 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    # Clean up the socket
     client_sock.close()
