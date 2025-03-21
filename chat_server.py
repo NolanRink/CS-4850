@@ -1,3 +1,10 @@
+'''
+Nolan Rink
+CS 4850 Project V1
+Due: 3/21/2025
+Program Description: This is the server component of a chat room application.
+'''
+
 # Using Python version 3.12.0
 import socket
 import sys
